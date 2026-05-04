@@ -12,6 +12,7 @@
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
     "import-data": "tsx scripts/import-hotwheels-data.ts",
+    "fetch-photos": "tsx scripts/fetch-photos.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {
