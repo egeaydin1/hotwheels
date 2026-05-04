@@ -1,0 +1,11 @@
+version: '3.9'
+
+services:
+  app:
+    restart: always
+    environment:
+      NODE_ENV: production
+  db:
+    restart: always
+  storage:
+    restart: always

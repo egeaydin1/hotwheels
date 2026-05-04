@@ -1,0 +1,122 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x", "linux-musl-arm64-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Source {
+  official
+  user_submitted
+}
+
+enum SeriesType {
+  mainline
+  premium
+  treasure_hunt
+  super_treasure_hunt
+  pop_culture
+  id_car
+  custom
+}
+
+enum CarStatus {
+  owned
+  wishlist
+  for_trade
+}
+
+enum Visibility {
+  public
+  private
+  unlisted
+}
+
+enum UserRole {
+  free
+  pro
+  dealer
+  admin
+}
+
+model User {
+  id           String      @id @default(uuid())
+  email        String      @unique
+  password     String?
+  username     String      @unique
+  display_name String?
+  avatar_url   String?
+  role         UserRole    @default(free)
+  created_at   DateTime    @default(now())
+  portfolios   Portfolio[]
+  cars         Car[]
+
+  @@map("users")
+}
+
+model Series {
+  id        String     @id @default(uuid())
+  name      String
+  year      Int
+  type      SeriesType @default(mainline)
+  car_count Int?
+  photo_url String?
+  cars      Car[]
+
+  @@unique([name, year])
+  @@map("series")
+}
+
+model Car {
+  id               String         @id @default(uuid())
+  name             String
+  series_id        String?
+  year             Int
+  collector_number String?
+  color            String?
+  category         String?
+  photo_url        String?
+  market_value     Float?
+  source           Source         @default(official)
+  submitted_by     String?
+  created_at       DateTime       @default(now())
+  series           Series?        @relation(fields: [series_id], references: [id])
+  user             User?          @relation(fields: [submitted_by], references: [id])
+  portfolio_cars   PortfolioCar[]
+
+  @@map("cars")
+}
+
+model Portfolio {
+  id              String         @id @default(uuid())
+  user_id         String
+  name            String
+  description     String?
+  cover_photo_url String?
+  visibility      Visibility     @default(private)
+  is_public       Boolean        @default(false)
+  share_slug      String?        @unique
+  created_at      DateTime       @default(now())
+  updated_at      DateTime       @updatedAt
+  user            User           @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  cars            PortfolioCar[]
+
+  @@map("portfolios")
+}
+
+model PortfolioCar {
+  id           String    @id @default(uuid())
+  portfolio_id String
+  car_id       String
+  status       CarStatus @default(owned)
+  notes        String?
+  added_at     DateTime  @default(now())
+  portfolio    Portfolio @relation(fields: [portfolio_id], references: [id], onDelete: Cascade)
+  car          Car       @relation(fields: [car_id], references: [id], onDelete: Cascade)
+
+  @@unique([portfolio_id, car_id])
+  @@map("portfolio_cars")
+}

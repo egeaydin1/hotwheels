@@ -1,0 +1,43 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #0F0F0F;
+  --foreground: #FFFFFF;
+  --card-bg: #1A1A1A;
+  --border: #2A2A2A;
+  --hw-red: #E8001C;
+  --hw-orange: #FF6B00;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .card-hover {
+    @apply transition-all duration-200 hover:border-hw-red/50 hover:shadow-lg hover:shadow-hw-red/10;
+  }
+  .btn-primary {
+    @apply bg-hw-red hover:bg-red-600 text-white font-semibold px-4 py-2 rounded-lg transition-colors duration-200;
+  }
+  .btn-secondary {
+    @apply border border-hw-border hover:border-hw-red/50 text-white px-4 py-2 rounded-lg transition-colors duration-200;
+  }
+  .input-field {
+    @apply bg-hw-card border border-hw-border rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-hw-red w-full;
+  }
+}

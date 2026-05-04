@@ -1,0 +1,74 @@
+services:
+
+  # ── PostgreSQL ──────────────────────────────────────────────────────────────
+  db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       ${DB_NAME}
+      POSTGRES_USER:     ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── MinIO (object storage) ──────────────────────────────────────────────────
+  storage:
+    image: minio/minio:latest
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER:     ${MINIO_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD}
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9001:9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── One-time: create storage bucket ────────────────────────────────────────
+  storage-init:
+    image: minio/mc:latest
+    restart: "no"
+    depends_on:
+      storage:
+        condition: service_healthy
+    environment:
+      MINIO_USER:     ${MINIO_USER}
+      MINIO_PASSWORD: ${MINIO_PASSWORD}
+      MINIO_BUCKET:   ${STORAGE_BUCKET}
+    entrypoint: >
+      sh -c "
+        mc alias set myminio http://storage:9000 $$MINIO_USER $$MINIO_PASSWORD &&
+        mc mb --ignore-existing myminio/$$MINIO_BUCKET &&
+        mc anonymous set public myminio/$$MINIO_BUCKET &&
+        echo 'Bucket ready.'
+      "
+
+  # ── Application ─────────────────────────────────────────────────────────────
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
+    env_file: .env
+    environment:
+      DATABASE_URL:     postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
+      STORAGE_ENDPOINT: http://storage:9000
+    depends_on:
+      db:
+        condition: service_healthy
+      storage-init:
+        condition: service_completed_successfully
+
+volumes:
+  postgres_data:
+  minio_data:
