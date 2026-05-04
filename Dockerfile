@@ -15,10 +15,10 @@ COPY . .
 RUN npx prisma generate
 
 # Compile scripts to plain JS so no tsx is needed at runtime
-RUN npx tsc scripts/import-hotwheels-data.ts scripts/fetch-photos.ts \
-    --module commonjs --target es2019 \
-    --esModuleInterop --skipLibCheck \
-    --outDir dist/scripts
+RUN for script in scripts/import-hotwheels-data.ts scripts/fetch-photos.ts; do \
+      npx tsc "$script" --module commonjs --target es2019 \
+        --esModuleInterop --skipLibCheck --outDir dist/scripts; \
+    done
 
 # Production build
 RUN npm run build
