@@ -78,10 +78,9 @@ async function uploadImage(buffer: Buffer, carId: string): Promise<string> {
     Key: key,
     Body: buffer,
     ContentType: 'image/jpeg',
-    ACL: 'public-read',
   }))
-  const endpoint = (process.env.STORAGE_ENDPOINT ?? 'http://localhost:9000').replace('storage', 'localhost')
-  return `${endpoint}/${BUCKET}/${key}`
+  // Serve through Next.js proxy so MinIO stays internal
+  return `/api/photos/${key}`
 }
 
 async function main() {
