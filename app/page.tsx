@@ -1,3 +1,4 @@
+import { unstable_noStore as noStore } from 'next/cache'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { Navbar } from '@/components/layout/Navbar'
@@ -5,6 +6,7 @@ import { Footer } from '@/components/layout/Footer'
 import { CarCard } from '@/components/catalog/CarCard'
 
 async function getStats() {
+  noStore()
   try {
     const [totalCars, totalPortfolios, totalUsers] = await Promise.all([
       prisma.car.count(),
@@ -18,6 +20,7 @@ async function getStats() {
 }
 
 async function getFeaturedCars() {
+  noStore()
   try {
     const total = await prisma.car.count()
     const skip = Math.max(0, Math.floor(Math.random() * (total - 6)))
@@ -59,7 +62,7 @@ export default async function HomePage() {
               Legacy
             </h1>
             <p className="text-xl text-gray-400 mb-8 leading-relaxed">
-              Browse {stats.totalCars.toLocaleString()}+ cars from the complete Hot Wheels catalog.
+              Browse the complete Hot Wheels catalog spanning 1968 to today.
               Build portfolios, track your collection, and share it with the world.
             </p>
             <div className="flex flex-wrap gap-4">
@@ -79,15 +82,21 @@ export default async function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="grid grid-cols-3 gap-8 text-center">
             <div>
-              <div className="text-3xl font-black text-hw-red">{stats.totalCars.toLocaleString()}+</div>
+              <div className="text-3xl font-black text-hw-red">
+                {stats.totalCars > 0 ? `${stats.totalCars.toLocaleString()}+` : '10,000+'}
+              </div>
               <div className="text-sm text-gray-400 mt-1">Cars in Catalog</div>
             </div>
             <div>
-              <div className="text-3xl font-black text-hw-orange">{stats.totalUsers.toLocaleString()}</div>
+              <div className="text-3xl font-black text-hw-orange">
+                {stats.totalUsers > 0 ? stats.totalUsers.toLocaleString() : '—'}
+              </div>
               <div className="text-sm text-gray-400 mt-1">Collectors</div>
             </div>
             <div>
-              <div className="text-3xl font-black text-white">{stats.totalPortfolios.toLocaleString()}</div>
+              <div className="text-3xl font-black text-white">
+                {stats.totalPortfolios > 0 ? stats.totalPortfolios.toLocaleString() : '—'}
+              </div>
               <div className="text-sm text-gray-400 mt-1">Portfolios Created</div>
             </div>
           </div>

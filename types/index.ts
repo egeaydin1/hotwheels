@@ -21,6 +21,7 @@ export interface Series {
   type: SeriesType
   car_count: number | null
   photo_url: string | null
+  _count?: { cars: number }
 }
 
 export type SeriesType =
